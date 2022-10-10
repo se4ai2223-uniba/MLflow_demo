@@ -70,38 +70,12 @@ imputed_X_valid.columns = X_valid.columns  # type: ignore
 X_train = imputed_X_train
 X_valid = imputed_X_valid
 
-# # Store preprocessed data to disk
-# Path("data/processed").mkdir(exist_ok=True)
-# prepared_folder_path = Path("data/processed")
-
-# X_train_path = prepared_folder_path / "X_train.csv"
-# y_train_path = prepared_folder_path / "y_train.csv"
-# X_valid_path = prepared_folder_path / "X_valid.csv"
-# y_valid_path = prepared_folder_path / "y_valid.csv"
-
-# X_train.to_csv(X_train_path)
-# print("Writing file {} to disk.".format(X_train_path))
-# y_train.to_csv(y_train_path)  # type: ignore
-# print("Writing file {} to disk.".format(y_train_path))
-# X_valid.to_csv(X_valid_path)
-# print("Writing file {} to disk.".format(X_valid_path))
-# y_valid.to_csv(y_valid_path)  # type: ignore
-# print("Writing file {} to disk.".format(y_valid_path))
-
 print("Data preparation done.")
 
 
 # ============== #
 # MODEL TRAINING #
 # ============== #
-
-# # Read preprocessed data from disk
-# # Path of the prepared data folder
-# input_folder_path = Path("data/processed")
-
-# # Read training dataset
-# X_train = pd.read_csv(input_folder_path / "X_train.csv")
-# y_train = pd.read_csv(input_folder_path / "y_train.csv")
 
 # Read data preparation parameters
 params = {}
@@ -127,14 +101,6 @@ iowa_model = algorithm(random_state=random_state)
 # Then I fit the model to the training data
 iowa_model.fit(X_train, y_train)
 
-# # Eventually, I save the model as a pickle file
-# Path("models").mkdir(exist_ok=True)
-# output_folder_path = Path("models")
-
-# with open(output_folder_path / "iowa_model.pkl", "wb") as pickle_file:
-#     pickle.dump(iowa_model, pickle_file)
-# pickle_path = output_folder_path / "iowa_model.pkl"
-
 print("Model training done.")
 
 
@@ -142,37 +108,12 @@ print("Model training done.")
 # MODEL EVALUATION #
 # ================ #
 
-# # Read preprocessed data and the trained model from disk
-# # Path to the prepared data folder
-# input_folder_path = Path("data/processed")
-
-# # Path to the models folder
-# model_folder_path = Path("models")
-
-# # Read validation dataset
-# X_valid = pd.read_csv(input_folder_path / "X_valid.csv")
-# y_valid = pd.read_csv(input_folder_path / "y_valid.csv")
-
-# # Load the model
-# with open(model_folder_path / "iowa_model.pkl", "rb") as pickled_model:
-#     iowa_model = pickle.load(pickled_model)
-
 # Compute predictions using the model
 val_predictions = iowa_model.predict(X_valid)
 
 # Compute the MAE value for the model
 val_mae = mean_absolute_error(y_valid, val_predictions)
 val_mean_squared_error = mean_squared_error(y_valid, val_predictions)
-
-# # Write metrics to file
-# Path("metrics").mkdir(exist_ok=True)
-# metrics_folder_path = Path("metrics")
-# with open(metrics_folder_path / "scores.json", "w") as scores_file:
-#     json.dump(
-#         {"mae": val_mae, "mean_squared_error": val_mean_squared_error},
-#         scores_file,
-#         indent=4,
-#     )
 
 print("Model evaluation done.")
 print("\tMAE: {:.2f}".format(val_mae))
