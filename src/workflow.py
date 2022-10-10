@@ -74,8 +74,8 @@ print("Data preparation done.")
 
 # Training params
 algorithm_type = "DecisionTreeRegressor"
-random_state = 0
-max_depth = 5
+random_state = 500
+max_depth = None
 mlflow.log_params(
     {
         "training_random_state": random_state,
@@ -121,7 +121,7 @@ val_predictions = iowa_model.predict(X_valid)
 val_mae = mean_absolute_error(y_valid, val_predictions)
 val_mean_squared_error = mean_squared_error(y_valid, val_predictions)
 
-mlflow.log_metrics({"MAE": val_mae, "ean_squared_error": val_mean_squared_error})
+mlflow.log_metrics({"MAE": val_mae, "mean_squared_error": val_mean_squared_error})
 
 print("Model evaluation done.")
 print("\tMAE: {:.2f}".format(val_mae))
