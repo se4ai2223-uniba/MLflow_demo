@@ -1,3 +1,4 @@
+import pickle
 from pathlib import Path
 
 import mlflow
@@ -19,6 +20,10 @@ mlflow.start_run()
 # ================ #
 # DATA PREPARATION #
 # ================ #
+
+# Data prep params
+random_state = 0
+mlflow.log_param("data_prep_random_state", random_state)
 
 # Read datasets from csv files
 input_folder_path = Path("data")
@@ -46,7 +51,7 @@ X_train, X_valid, y_train, y_valid = train_test_split(
     y,
     train_size=0.8,
     test_size=0.2,
-    random_state=0,
+    random_state=random_state,
 )
 
 # Handle Missing Values with Imputation
@@ -67,9 +72,19 @@ print("Data preparation done.")
 # MODEL TRAINING #
 # ============== #
 
+# Training params
 algorithm_type = "DecisionTreeRegressor"
+random_state = 0
+max_depth = 5
+mlflow.log_params(
+    {
+        "training_random_state": random_state,
+        "algorithm_type": algorithm_type,
+        "max_depth": max_depth,
+    }
+)
 
-# Specify the training algorithm
+# Select the training algorithm
 if algorithm_type == "DecisionTreeRegressor":
     algorithm = DecisionTreeRegressor
 elif algorithm_type == "RandomForestRegressor":
@@ -77,12 +92,20 @@ elif algorithm_type == "RandomForestRegressor":
 else:
     raise ValueError("Unknown algorithm: {}".format(algorithm_type))
 
-# For the sake of reproducibility, I set the `random_state`
-random_state = 0
-iowa_model = algorithm(random_state=random_state, max_depth=5)
+iowa_model = algorithm(random_state=random_state, max_depth=max_depth)
 
-# Then I fit the model to the training data
+
+# Then fit the model to the training data
 iowa_model.fit(X_train, y_train)
+
+# Save iowa_model to pickle file
+model_path = "models"
+model_file_name = "iowa_model.pkl"
+model_file_path = Path(model_path) / model_file_name
+model_file_path.parent.mkdir(parents=True, exist_ok=True)
+with open(model_file_path, "wb") as pickle_file:
+    pickle.dump(iowa_model, pickle_file)
+mlflow.log_artifact(str(model_file_path))
 
 print("Model training done.")
 
@@ -97,6 +120,8 @@ val_predictions = iowa_model.predict(X_valid)
 # Compute the MAE value for the model
 val_mae = mean_absolute_error(y_valid, val_predictions)
 val_mean_squared_error = mean_squared_error(y_valid, val_predictions)
+
+mlflow.log_metrics({"MAE": val_mae, "ean_squared_error": val_mean_squared_error})
 
 print("Model evaluation done.")
 print("\tMAE: {:.2f}".format(val_mae))
