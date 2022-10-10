@@ -1,11 +1,20 @@
 from pathlib import Path
 
+import mlflow
 import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.impute import SimpleImputer
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeRegressor
+
+# **************** #
+# START MLFLOW RUN #
+# **************** #
+
+mlflow.set_experiment("Predict house prices")
+mlflow.start_run()
+
 
 # ================ #
 # DATA PREPARATION #
@@ -70,7 +79,7 @@ else:
 
 # For the sake of reproducibility, I set the `random_state`
 random_state = 0
-iowa_model = algorithm(random_state=random_state)
+iowa_model = algorithm(random_state=random_state, max_depth=5)
 
 # Then I fit the model to the training data
 iowa_model.fit(X_train, y_train)
@@ -92,3 +101,10 @@ val_mean_squared_error = mean_squared_error(y_valid, val_predictions)
 print("Model evaluation done.")
 print("\tMAE: {:.2f}".format(val_mae))
 print("\tMean Squared Error: {:.2f}".format(val_mean_squared_error))
+
+
+# ************** #
+# END MLFLOW RUN #
+# ************** #
+
+mlflow.end_run()
