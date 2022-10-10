@@ -1,20 +1,11 @@
 from pathlib import Path
 
-import mlflow
 import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.impute import SimpleImputer
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeRegressor
-
-# **************** #
-# START MLFLOW RUN #
-# **************** #
-
-mlflow.set_experiment("Predict house prices")
-mlflow.start_run()
-
 
 # ================ #
 # DATA PREPARATION #
@@ -101,10 +92,3 @@ val_mean_squared_error = mean_squared_error(y_valid, val_predictions)
 print("Model evaluation done.")
 print("\tMAE: {:.2f}".format(val_mae))
 print("\tMean Squared Error: {:.2f}".format(val_mean_squared_error))
-
-
-# ************** #
-# END MLFLOW RUN #
-# ************** #
-
-mlflow.end_run()
