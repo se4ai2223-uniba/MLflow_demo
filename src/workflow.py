@@ -14,28 +14,12 @@ from sklearn.tree import DecisionTreeRegressor
 # DATA PREPARATION #
 # ================ #
 
-# Path of the parameters file
-params_path = Path("params.yaml")
-
-# Path of the input data folder
-input_folder_path = Path("data/raw")
-
-# Paths of the files to read
+# Read datasets from csv files
+input_folder_path = Path("data")
 train_path = input_folder_path / "train.csv"
 test_path = input_folder_path / "test.csv"
-
-# Read datasets from csv files
 train_data = pd.read_csv(train_path, index_col="Id")
 test_data = pd.read_csv(test_path, index_col="Id")
-
-# Read data preparation parameters
-params = {}
-with open(params_path, "r") as params_file:
-    try:
-        params = yaml.safe_load(params_file)
-        params = params["prepare"]
-    except yaml.YAMLError as exc:
-        print(exc)
 
 # Remove rows with missing target
 train_data.dropna(axis=0, subset=["SalePrice"], inplace=True)
@@ -46,7 +30,7 @@ y = train_data.SalePrice
 # Create a DataFrame called `X` holding the predictive features.
 X_full = train_data.drop(["SalePrice"], axis=1)
 
-# To keep things simple, we'll use only numerical predictors
+# To keep things simple, let's use only numerical predictors
 X = X_full.select_dtypes(exclude=["object"])
 X_test = test_data.select_dtypes(exclude=["object"])
 
@@ -54,9 +38,9 @@ X_test = test_data.select_dtypes(exclude=["object"])
 X_train, X_valid, y_train, y_valid = train_test_split(
     X,
     y,
-    train_size=params.get("train_size", 0.8),
-    test_size=params.get("test_size", 0.2),
-    random_state=params.get("random_state", 0),
+    train_size=0.8,
+    test_size=0.2,
+    random_state=0,
 )
 
 # Handle Missing Values with Imputation
@@ -77,25 +61,18 @@ print("Data preparation done.")
 # MODEL TRAINING #
 # ============== #
 
-# Read data preparation parameters
-params = {}
-with open(params_path, "r") as params_file:
-    try:
-        params = yaml.safe_load(params_file)
-        params = params["train"]
-    except yaml.YAMLError as exc:
-        print(exc)
+algorithm_type = "DecisionTreeRegressor"
 
 # Specify the training algorithm
-if params["algorithm"] == "DecisionTreeRegressor":
+if algorithm_type == "DecisionTreeRegressor":
     algorithm = DecisionTreeRegressor
-elif params["algorithm"] == "RandomForestRegressor":
+elif algorithm_type == "RandomForestRegressor":
     algorithm = RandomForestRegressor
 else:
-    raise ValueError("Unknown algorithm: {}".format(params["algorithm"]))
+    raise ValueError("Unknown algorithm: {}".format(algorithm_type))
 
 # For the sake of reproducibility, I set the `random_state`
-random_state = params.get("random_state", 0)
+random_state = 0
 iowa_model = algorithm(random_state=random_state)
 
 # Then I fit the model to the training data
