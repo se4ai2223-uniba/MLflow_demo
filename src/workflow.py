@@ -1,5 +1,7 @@
+import pickle
 from pathlib import Path
 
+import mlflow
 import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.impute import SimpleImputer
@@ -10,6 +12,12 @@ from sklearn.tree import DecisionTreeRegressor
 # ================ #
 # DATA PREPARATION #
 # ================ #
+
+# Start mlflow run
+mlflow.start_run()
+
+random_state = 0
+mlflow.log_param("random_state_dataPrep", random_state)
 
 # Read datasets from csv files
 input_folder_path = Path("data")
@@ -37,7 +45,7 @@ X_train, X_valid, y_train, y_valid = train_test_split(
     y,
     train_size=0.8,
     test_size=0.2,
-    random_state=0,
+    random_state=random_state,
 )
 
 # Handle Missing Values with Imputation
@@ -58,7 +66,16 @@ print("Data preparation done.")
 # MODEL TRAINING #
 # ============== #
 
-algorithm_type = "DecisionTreeRegressor"
+algorithm_type = "RandomForestRegressor"
+max_depth = 100
+random_state = 0
+mlflow.log_params(
+    {
+        "algorithm_type": algorithm_type,
+        "max_depth": max_depth,
+        "random_state_training": random_state,
+    }
+)
 
 # Specify the training algorithm
 if algorithm_type == "DecisionTreeRegressor":
@@ -70,10 +87,21 @@ else:
 
 # For the sake of reproducibility, I set the `random_state`
 random_state = 0
-iowa_model = algorithm(random_state=random_state, max_depth=5)
+iowa_model = algorithm(random_state=random_state, max_depth=max_depth)
 
 # Then I fit the model to the training data
 iowa_model.fit(X_train, y_train)
+
+# Save the model to disk
+model_path = "models"
+model_name = "model.pkl"
+model_path = Path(model_path)
+model_path.mkdir(parents=True, exist_ok=True)
+model_path = model_path / model_name
+with open(model_path, "wb") as file:
+    pickle.dump(iowa_model, file)
+
+mlflow.log_artifact(str(model_path))
 
 print("Model training done.")
 
@@ -89,6 +117,16 @@ val_predictions = iowa_model.predict(X_valid)
 val_mae = mean_absolute_error(y_valid, val_predictions)
 val_mean_squared_error = mean_squared_error(y_valid, val_predictions)
 
+mlflow.log_metrics(
+    {
+        "val_mae": val_mae,
+        "val_mean_squared_error": val_mean_squared_error,
+    }
+)
+
 print("Model evaluation done.")
 print("\tMAE: {:.2f}".format(val_mae))
 print("\tMean Squared Error: {:.2f}".format(val_mean_squared_error))
+
+# End mlflow run
+mlflow.end_run()
